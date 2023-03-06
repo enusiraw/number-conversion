@@ -19,13 +19,27 @@ public class NumberConverterClient extends Application {
     public String BinaryToDecimal(String binaryString) {
         int decimal = 0;
         int power = 0;
+
         for (int i = binaryString.length() - 1; i >= 0; i--) {
-            if (binaryString.charAt(i) == '1') {
-                decimal += Math.pow(2, power);
-            }
+            int digit = binaryString.charAt(i) - '0';
+            decimal += digit * Math.pow(2, power);
             power++;
         }
         return String.valueOf(decimal);
+    }
+
+    public String BinaryToOctal(String binary) throws RemoteException {
+        StringBuilder octal = new StringBuilder();
+        String binaryStr = Integer.toString(Integer.parseInt(binary));
+        int numDigits = binaryStr.length();
+        int numPadding = numDigits % 3 == 0 ? 0 : 3 - numDigits % 3;
+        binaryStr = "0".repeat(numPadding) + binaryStr;
+        for (int i = 0; i < binaryStr.length(); i += 3) {
+            String binaryGroup = binaryStr.substring(i, i + 3);
+            int octalDigit = Integer.parseInt(binaryGroup, 2);
+            octal.append(octalDigit);
+        }
+        return octal.toString();
     }
 
     @Override
@@ -122,21 +136,25 @@ public class NumberConverterClient extends Application {
             Binary_page.getChildren().add(pane_binary);
             stage1.setScene(scene1);
 
-            textField.textProperty().addListener((observable, oldValue, newValue) -> {
-                if (!newValue.matches("[01]*")) {
-                    textField.setText(oldValue);
-                }
-            });
-
-
-
             decimal.setOnAction(actionEvent1 -> {
                 String binary = textField.getText();
+                int decimal_result = Integer.parseInt(BinaryToDecimal(binary));
+                String result = String.valueOf(decimal_result);
                 textField.clear();
-                if (binary != null && !binary.isEmpty()) {
-                    int decimal_result = Integer.parseInt(BinaryToDecimal(binary));
-                    String result = String.valueOf(decimal_result);
+                textField.setText(result);
+
+
+            });
+
+            octal.setOnAction(actionEvent1 -> {
+                String binary = textField.getText();
+                try {
+                    int octal_result = Integer.parseInt(BinaryToOctal(binary));
+                    String result = String.valueOf(octal_result);
+                    textField.clear();
                     textField.setText(result);
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
                 }
             });
 
